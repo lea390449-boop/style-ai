@@ -35,7 +35,7 @@ function AppShell() {
           {tabs.map((t) => {
             const active = t.exact ? loc.pathname === t.to : loc.pathname.startsWith(t.to);
             return (
-              <Link key={t.to} to={t.to} className={`rounded-full px-4 py-2 text-sm transition ${active ? "bg-secondary text-secondary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+              <Link key={t.to} to={t.to as string} className={`rounded-full px-4 py-2 text-sm transition ${active ? "bg-secondary text-secondary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
                 {t.label}
               </Link>
             );
@@ -55,7 +55,7 @@ function AppShell() {
         {tabs.map((t) => {
           const active = t.exact ? loc.pathname === t.to : loc.pathname.startsWith(t.to);
           return (
-            <Link key={t.to} to={t.to} className={`flex flex-col items-center gap-0.5 rounded-full px-4 py-2 text-[10px] ${active ? "bg-foreground text-background" : "text-muted-foreground"}`}>
+            <Link key={t.to} to={t.to as string} className={`flex flex-col items-center gap-0.5 rounded-full px-4 py-2 text-[10px] ${active ? "bg-foreground text-background" : "text-muted-foreground"}`}>
               <t.icon className="h-4 w-4" />
               {t.label}
             </Link>
