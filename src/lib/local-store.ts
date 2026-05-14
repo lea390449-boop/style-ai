@@ -15,7 +15,15 @@ export type ProfileLocal = {
   body_notes: string | null;
 };
 
-export type LookLocal = { id: string; result_url: string };
+export type LookLocal = { id: string; result_url: string; note?: string; createdAt?: number };
+
+export type BoardLocal = {
+  id: string;
+  name: string;
+  cover?: string | null;
+  looks: LookLocal[];
+  createdAt: number;
+};
 
 export type ChatMsg = { role: "user" | "assistant"; content: string };
 
@@ -24,6 +32,7 @@ const KEYS = {
   profile: "alta:profile",
   looks: "alta:looks",
   chat: "alta:chat",
+  boards: "alta:boards",
 } as const;
 
 function read<T>(key: string, fallback: T): T {
