@@ -12,12 +12,12 @@ const TITLES: Record<string, string> = {
   "/app/shop": "Shop",
 };
 
-const tabs = [
+const tabs: ReadonlyArray<{ to: "/app" | "/app/wardrobe" | "/app/try-on" | "/app/shop"; label: string; icon: typeof Sparkles; exact?: boolean }> = [
   { to: "/app", label: "Stylist", icon: Sparkles, exact: true },
   { to: "/app/wardrobe", label: "Closet", icon: Shirt },
   { to: "/app/try-on", label: "Try-on", icon: Camera },
   { to: "/app/shop", label: "Shop", icon: ShoppingBag },
-] as const;
+];
 
 function AppShell() {
   const { user, loading, signOut } = useAuth();
