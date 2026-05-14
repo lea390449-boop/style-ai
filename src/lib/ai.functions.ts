@@ -121,13 +121,14 @@ export const generateLook = createServerFn({ method: "POST" })
     const occasion = data.occasion?.trim();
 
     const promptText = [
-      `Photoreal full-body studio portrait of the SAME person from the first reference image.`,
+      `Photoreal full-body studio portrait of the SAME person from the first reference image, isolated as a clean cut-out subject.`,
       `CRITICAL — preserve identity exactly: same face, same facial features, same hairstyle, same ${skin} skin tone with ${undertone} undertone, same body proportions (${notes}). Do NOT lighten, darken, or alter skin color or ethnicity.`,
       `Dress the person in the garments shown in the following reference images, one item per image. Match each garment's exact color, fabric, print, and silhouette. Layer correctly: tops over bottoms, outerwear on top, shoes on feet.`,
-      `Pose: confident relaxed 3/4 stance, hands natural, looking slightly off-camera.`,
-      `Background: soft seamless gradient backdrop in warm cream / blush, subtle floor shadow, even soft studio lighting like a high-end lookbook.`,
-      occasion ? `Occasion / mood: ${occasion}.` : ``,
-      `Output: single clean photoreal image, magazine quality.`,
+      `Pose: standing perfectly straight, squared to camera, FACING FORWARD directly at the viewer, head level, eyes looking straight at the camera, arms relaxed at sides. No 3/4 turn, no profile, no looking away.`,
+      `Background: pure solid white (#FFFFFF) seamless backdrop, no floor line, no horizon, no props, no backdrop shadow. Only a soft contact shadow directly beneath the feet. Even, soft, neutral studio lighting like an e-commerce ghost-mannequin shoot.`,
+      `Frame the full body head-to-toe, centered, with generous white margin around the subject.`,
+      occasion ? `Occasion / mood for the styling: ${occasion}.` : ``,
+      `Output: single clean photoreal image, magazine quality, subject crisply isolated on white.`,
     ].filter(Boolean).join(" ");
 
     const content: Array<{ type: string; text?: string; image_url?: { url: string } }> = [
