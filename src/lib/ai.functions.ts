@@ -1,6 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const SYSTEM = `You are Alta, a warm, expert AI fashion stylist with an editorial eye.
 Your voice: confident, intimate, never preachy. You speak like a trusted stylist friend.
@@ -9,7 +8,6 @@ Suggest outfits using the user's wardrobe when relevant. Keep replies short, evo
 Format with light markdown (bold for key pieces). Never apologize unnecessarily.`;
 
 export const stylistChat = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({
     messages: z.array(z.object({
       role: z.enum(["user", "assistant"]),
@@ -47,15 +45,13 @@ export const stylistChat = createServerFn({ method: "POST" })
 
 /**
  * Analyze a user's reference photo to extract skin tone, undertone, hair, build.
- * Persists results to the profiles row.
+ * Pure: returns the parsed analysis, no persistence.
  */
 export const analyzeUserPhoto = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ photoUrl: z.string().url() }).parse(d))
-  .handler(async ({ data, context }) => {
+  .inputValidator((d) => z.object({ photoUrl: z.string().min(1).max(8_000_000) }).parse(d))
+  .handler(async ({ data }) => {
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("Missing LOVABLE_API_KEY");
-    const { supabase, userId } = context;
 
     const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -99,45 +95,29 @@ export const analyzeUserPhoto = createServerFn({ method: "POST" })
     const args = json.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
     if (!args) return { ok: false as const, error: "No analysis returned." };
     const parsed = JSON.parse(args);
-
-    await supabase.from("profiles").update({
-      photo_url: data.photoUrl,
-      skin_tone: parsed.skin_tone,
-      undertone: parsed.undertone,
-      body_notes: `${parsed.hair}; ${parsed.build}`,
-    }).eq("id", userId);
-
     return { ok: true as const, ...parsed };
   });
 
 /**
  * Generate a personalized "model" render of the user wearing selected wardrobe items.
- * Preserves face, hair, and skin tone from the reference photo.
+ * Pure: caller passes the reference photo + descriptors, gets back an image data URL.
  */
 export const generateLook = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({
-    garmentUrls: z.array(z.string().url()).min(1).max(6),
+    photoUrl: z.string().min(1).max(8_000_000),
+    skinTone: z.string().max(40).optional(),
+    undertone: z.string().max(40).optional(),
+    bodyNotes: z.string().max(400).optional(),
+    garmentUrls: z.array(z.string().min(1).max(8_000_000)).min(1).max(6),
     occasion: z.string().max(120).optional(),
   }).parse(d))
-  .handler(async ({ data, context }) => {
+  .handler(async ({ data }) => {
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("Missing LOVABLE_API_KEY");
-    const { supabase, userId } = context;
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("photo_url,skin_tone,undertone,body_notes")
-      .eq("id", userId)
-      .maybeSingle();
-
-    if (!profile?.photo_url) {
-      return { imageUrl: null, error: "Add a reference photo first so we can render you accurately." };
-    }
-
-    const skin = profile.skin_tone ?? "as shown in reference";
-    const undertone = profile.undertone ?? "neutral";
-    const notes = profile.body_notes ?? "";
+    const skin = data.skinTone ?? "as shown in reference";
+    const undertone = data.undertone ?? "neutral";
+    const notes = data.bodyNotes ?? "";
     const occasion = data.occasion?.trim();
 
     const promptText = [
@@ -152,7 +132,7 @@ export const generateLook = createServerFn({ method: "POST" })
 
     const content: Array<{ type: string; text?: string; image_url?: { url: string } }> = [
       { type: "text", text: promptText },
-      { type: "image_url", image_url: { url: profile.photo_url } },
+      { type: "image_url", image_url: { url: data.photoUrl } },
       ...data.garmentUrls.map((url) => ({ type: "image_url" as const, image_url: { url } })),
     ];
 
@@ -175,29 +155,5 @@ export const generateLook = createServerFn({ method: "POST" })
     const json = await res.json();
     const dataUrl: string | null = json.choices?.[0]?.message?.images?.[0]?.image_url?.url ?? null;
     if (!dataUrl) return { imageUrl: null, error: "No image returned." };
-
-    // Persist the data URL into the looks bucket so it has a stable public URL.
-    try {
-      const match = dataUrl.match(/^data:(image\/\w+);base64,(.+)$/);
-      if (!match) return { imageUrl: dataUrl, error: null };
-      const [, mime, b64] = match;
-      const ext = mime.split("/")[1] ?? "png";
-      const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-      const path = `${userId}/${crypto.randomUUID()}.${ext}`;
-      const { error: upErr } = await supabase.storage.from("looks").upload(path, bytes, { contentType: mime, upsert: false });
-      if (upErr) {
-        console.error("looks upload error", upErr);
-        return { imageUrl: dataUrl, error: null };
-      }
-      const publicUrl = supabase.storage.from("looks").getPublicUrl(path).data.publicUrl;
-      await supabase.from("try_on_results").insert({
-        user_id: userId,
-        result_url: publicUrl,
-        prompt: occasion ?? null,
-      });
-      return { imageUrl: publicUrl, error: null };
-    } catch (e) {
-      console.error("persist look error", e);
-      return { imageUrl: dataUrl, error: null };
-    }
+    return { imageUrl: dataUrl, error: null };
   });
