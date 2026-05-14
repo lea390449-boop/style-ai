@@ -7,12 +7,12 @@ import { useNavigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/app")({ component: AppShell });
 
-const tabs = [
+const tabs: { to: string; label: string; icon: typeof Sparkles; exact?: boolean }[] = [
   { to: "/app", label: "Stylist", icon: Sparkles, exact: true },
   { to: "/app/wardrobe", label: "Wardrobe", icon: Shirt },
   { to: "/app/try-on", label: "Try-on", icon: Camera },
   { to: "/app/shop", label: "Shop", icon: ShoppingBag },
-] as const;
+];
 
 function AppShell() {
   const { user, loading, signOut } = useAuth();
