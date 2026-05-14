@@ -121,14 +121,15 @@ export const generateLook = createServerFn({ method: "POST" })
     const occasion = data.occasion?.trim();
 
     const promptText = [
-      `Photoreal full-body studio portrait of the SAME person from the first reference image, isolated as a clean cut-out subject.`,
-      `CRITICAL — preserve identity exactly: same face, same facial features, same hairstyle, same ${skin} skin tone with ${undertone} undertone, same body proportions (${notes}). Do NOT lighten, darken, or alter skin color or ethnicity.`,
-      `Dress the person in the garments shown in the following reference images, one item per image. Match each garment's exact color, fabric, print, and silhouette. Layer correctly: tops over bottoms, outerwear on top, shoes on feet.`,
+      `Photoreal full-body studio portrait of the EXACT SAME person from the first reference image, isolated as a clean cut-out subject.`,
+      `ABSOLUTE IDENTITY LOCK — the face must be indistinguishable from the reference: preserve exact face shape, jawline, cheekbones, nose shape and width, lip shape, eye shape, eye color, eyebrow shape, forehead, hairline, every freckle, mole, scar, or distinguishing mark. Match the hairstyle, hair color, hair length, and hair texture precisely. Keep the ${skin} skin tone with ${undertone} undertone exactly as in the reference — do NOT lighten, darken, smooth, retouch, beautify, slim, or alter the face or ethnicity in any way. The rendered face should pass a side-by-side identity check with the reference photo.`,
+      `BODY INCLUSIVITY — render the body at the SAME true size, shape, height, and proportions as the reference person (${notes}). Do NOT slim, stretch, idealize, or push toward a "model" body type. Honor every body: petite, tall, plus-size, curvy, straight, athletic, apple, pear, hourglass, broad-shouldered, narrow, soft, muscular — all rendered with dignity, accurate volume, and natural posture. Garments should drape realistically over the actual body, not a thinner stand-in.`,
+      `Dress the person in the garments shown in the following reference images, one item per image. Match each garment's exact color, fabric, print, pattern, and silhouette. Fit the clothing to the person's true body — show realistic stretch, drape, and fabric tension where appropriate. Layer correctly: tops over bottoms, outerwear on top, shoes on feet.`,
       `Pose: standing perfectly straight, squared to camera, FACING FORWARD directly at the viewer, head level, eyes looking straight at the camera, arms relaxed at sides. No 3/4 turn, no profile, no looking away.`,
-      `Background: pure solid white (#FFFFFF) seamless backdrop, no floor line, no horizon, no props, no backdrop shadow. Only a soft contact shadow directly beneath the feet. Even, soft, neutral studio lighting like an e-commerce ghost-mannequin shoot.`,
+      `Background: pure solid white (#FFFFFF) seamless backdrop, no floor line, no horizon, no props, no backdrop shadow. Only a soft contact shadow directly beneath the feet. Even, soft, neutral studio lighting like a high-end e-commerce shoot — sharp focus on the face, no motion blur.`,
       `Frame the full body head-to-toe, centered, with generous white margin around the subject.`,
       occasion ? `Occasion / mood for the styling: ${occasion}.` : ``,
-      `Output: single clean photoreal image, magazine quality, subject crisply isolated on white.`,
+      `Output: a single photoreal image, magazine quality, subject crisply isolated on white, with the face rendered at maximum fidelity to the reference.`,
     ].filter(Boolean).join(" ");
 
     const content: Array<{ type: string; text?: string; image_url?: { url: string } }> = [
