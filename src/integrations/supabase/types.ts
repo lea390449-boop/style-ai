@@ -14,7 +14,177 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      outfits: {
+        Row: {
+          created_at: string
+          id: string
+          item_ids: string[] | null
+          name: string
+          notes: string | null
+          occasion: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_ids?: string[] | null
+          name: string
+          notes?: string | null
+          occasion?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_ids?: string[] | null
+          name?: string
+          notes?: string | null
+          occasion?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          style_preferences: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id: string
+          style_preferences?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          style_preferences?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      shop_items: {
+        Row: {
+          brand: string | null
+          category: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          name: string
+          price: number | null
+          tags: string[] | null
+        }
+        Insert: {
+          brand?: string | null
+          category?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          name: string
+          price?: number | null
+          tags?: string[] | null
+        }
+        Update: {
+          brand?: string | null
+          category?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          name?: string
+          price?: number | null
+          tags?: string[] | null
+        }
+        Relationships: []
+      }
+      try_on_results: {
+        Row: {
+          created_at: string
+          id: string
+          prompt: string | null
+          result_url: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          prompt?: string | null
+          result_url: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          prompt?: string | null
+          result_url?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wardrobe_items: {
+        Row: {
+          category: string
+          color: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          name: string
+          tags: string[] | null
+          user_id: string
+        }
+        Insert: {
+          category: string
+          color?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          name: string
+          tags?: string[] | null
+          user_id: string
+        }
+        Update: {
+          category?: string
+          color?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          name?: string
+          tags?: string[] | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
