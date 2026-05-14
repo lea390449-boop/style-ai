@@ -29,40 +29,38 @@ function Wardrobe() {
   };
 
   return (
-    <div>
-      <div className="mb-8 flex items-end justify-between">
-        <div>
-          <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Closet</p>
-          <h1 className="font-display text-4xl">Your wardrobe</h1>
-        </div>
-        <button onClick={() => setOpen(true)} className="flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm text-background">
-          <Plus className="h-4 w-4" /> Add item
-        </button>
-      </div>
-
+    <div className="relative pb-4">
       {items.length === 0 ? (
-        <div className="rounded-3xl border border-dashed border-border bg-secondary/30 py-20 text-center">
-          <p className="font-display text-2xl">Your closet is empty.</p>
-          <p className="mt-2 text-sm text-muted-foreground">Add a piece to start building outfits.</p>
+        <div className="rounded-3xl border border-dashed border-border bg-gradient-blush py-16 text-center">
+          <p className="font-display text-2xl text-plum">Your closet is empty.</p>
+          <p className="mt-2 px-6 text-sm text-plum/70">Tap the + button to add your first piece.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3">
           {items.map((i) => (
-            <div key={i.id} className="group relative overflow-hidden rounded-2xl bg-card shadow-petal">
-              <div className="aspect-[3/4] overflow-hidden bg-secondary">
+            <div key={i.id} className="group relative overflow-hidden rounded-3xl bg-card shadow-petal">
+              <div className="aspect-square overflow-hidden bg-secondary">
                 {i.image_url ? <img src={i.image_url} alt={i.name} className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center text-xs text-muted-foreground">No image</div>}
               </div>
-              <div className="p-3">
-                <p className="truncate font-medium">{i.name}</p>
-                <p className="text-xs text-muted-foreground capitalize">{i.color} · {i.category}</p>
+              <div className="p-2.5">
+                <p className="truncate text-sm font-medium">{i.name}</p>
+                <p className="text-[11px] text-muted-foreground capitalize">{i.color ? `${i.color} · ` : ""}{i.category}</p>
               </div>
-              <button onClick={() => remove(i.id)} className="absolute top-2 right-2 hidden rounded-full bg-background/90 p-2 group-hover:block">
+              <button onClick={() => remove(i.id)} className="absolute top-2 right-2 rounded-full bg-background/90 p-2 opacity-0 transition group-hover:opacity-100 active:opacity-100">
                 <Trash2 className="h-3.5 w-3.5" />
               </button>
             </div>
           ))}
         </div>
       )}
+
+      {/* FAB */}
+      <button onClick={() => setOpen(true)}
+        className="fixed bottom-24 right-[calc(50vw-220px)] z-30 flex h-14 w-14 items-center justify-center rounded-full bg-foreground text-background shadow-soft active:scale-95 md:right-[calc(50vw-216px)]"
+        style={{ bottom: "calc(env(safe-area-inset-bottom) + 5.5rem)" }}
+      >
+        <Plus className="h-6 w-6" />
+      </button>
 
       {open && <AddItem onClose={() => setOpen(false)} onAdded={() => { setOpen(false); load(); }} />}
     </div>

@@ -61,22 +61,20 @@ function StylistChat() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-180px)] flex-col">
-      <div className="mb-4">
-        <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Stylist</p>
-        <h1 className="font-display text-4xl">Hi, I'm Alta.</h1>
-      </div>
-
-      <div className="flex-1 space-y-4 overflow-y-auto rounded-3xl bg-secondary/30 p-5">
+    <div className="flex h-[calc(100dvh-13rem)] flex-col">
+      <div className="flex-1 space-y-3 overflow-y-auto rounded-3xl bg-gradient-blush p-4">
         {messages.length === 0 && (
-          <div className="flex h-full flex-col items-center justify-center gap-6 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-mauve">
+          <div className="flex h-full flex-col items-center justify-center gap-5 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-mauve shadow-petal">
               <Sparkles className="h-7 w-7 text-primary-foreground" />
             </div>
-            <p className="max-w-sm text-muted-foreground">Tell me about an occasion, an outfit you love, or what you're feeling. Try one of these:</p>
-            <div className="flex flex-wrap justify-center gap-2">
+            <div>
+              <p className="font-display text-2xl text-plum">Hi, I'm Alta.</p>
+              <p className="mt-1 px-4 text-sm text-plum/70">Tell me about an occasion, an outfit you love, or what you're feeling.</p>
+            </div>
+            <div className="flex flex-wrap justify-center gap-2 px-2">
               {STARTERS.map((s) => (
-                <button key={s} onClick={() => send(s)} className="rounded-full border border-border bg-card px-4 py-2 text-sm text-muted-foreground transition hover:bg-card hover:text-foreground">
+                <button key={s} onClick={() => send(s)} className="rounded-full bg-card/90 px-3 py-2 text-xs text-plum shadow-petal">
                   {s}
                 </button>
               ))}
@@ -85,18 +83,18 @@ function StylistChat() {
         )}
         {messages.map((m, i) => (
           <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-            <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm ${m.role === "user" ? "bg-foreground text-background" : "bg-card shadow-petal"}`}>
+            <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm ${m.role === "user" ? "rounded-br-md bg-foreground text-background" : "rounded-bl-md bg-card shadow-petal"}`}>
               <div className="prose prose-sm max-w-none prose-strong:text-current prose-p:my-1.5">
                 <ReactMarkdown>{m.content}</ReactMarkdown>
               </div>
             </div>
           </div>
         ))}
-        {busy && <div className="text-sm italic text-muted-foreground">Alta is thinking…</div>}
+        {busy && <div className="text-xs italic text-plum/70">Alta is thinking…</div>}
         <div ref={endRef} />
       </div>
 
-      <form onSubmit={(e) => { e.preventDefault(); send(input); }} className="mt-4 flex gap-2">
+      <form onSubmit={(e) => { e.preventDefault(); send(input); }} className="mt-3 flex gap-2">
         <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask your stylist…" className="flex-1 rounded-full border border-input bg-background px-5 py-3.5 text-sm outline-none focus:border-primary" />
         <button disabled={busy || !input.trim()} className="flex h-12 w-12 items-center justify-center rounded-full bg-foreground text-background disabled:opacity-40">
           <Send className="h-4 w-4" />

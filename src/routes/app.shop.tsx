@@ -21,27 +21,24 @@ function Shop() {
 
   return (
     <div>
-      <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">The Edit</p>
-      <h1 className="font-display text-4xl">Curated for you.</h1>
-
-      <div className="mt-6 mb-8 flex flex-wrap gap-2">
+      <div className="-mx-5 mb-5 flex gap-2 overflow-x-auto px-5 pb-1">
         {CATS.map((c) => (
-          <button key={c} onClick={() => setCat(c)} className={`rounded-full px-4 py-2 text-xs uppercase tracking-wider transition ${cat === c ? "bg-foreground text-background" : "bg-secondary text-muted-foreground"}`}>
+          <button key={c} onClick={() => setCat(c)} className={`shrink-0 rounded-full px-4 py-2 text-[11px] uppercase tracking-wider transition ${cat === c ? "bg-foreground text-background" : "bg-secondary text-muted-foreground"}`}>
             {c}
           </button>
         ))}
       </div>
 
-      <div className="grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3">
         {filtered.map((i) => (
           <div key={i.id} className="group">
             <div className="aspect-[3/4] overflow-hidden rounded-2xl bg-secondary">
               {i.image_url && <img src={i.image_url} alt={i.name} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" loading="lazy" />}
             </div>
-            <div className="mt-3">
-              <p className="text-xs uppercase tracking-wider text-muted-foreground">{i.brand}</p>
-              <p className="mt-0.5 text-sm leading-tight">{i.name}</p>
-              <p className="mt-1 font-display text-lg">${i.price}</p>
+            <div className="mt-2">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{i.brand}</p>
+              <p className="text-xs leading-tight">{i.name}</p>
+              <p className="mt-0.5 font-display text-base">${i.price}</p>
             </div>
           </div>
         ))}
