@@ -1,32 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Plus, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth-context";
+import { useLocalState, localKeys, fileToDataUrl, type WardrobeItem } from "@/lib/local-store";
 
 export const Route = createFileRoute("/app/wardrobe")({ component: Wardrobe });
-
-type Item = { id: string; name: string; category: string; color: string | null; image_url: string | null };
 
 const CATEGORIES = ["tops", "bottoms", "dresses", "outerwear", "shoes", "accessories"];
 
 function Wardrobe() {
-  const { user } = useAuth();
-  const [items, setItems] = useState<Item[]>([]);
+  const [items, setItems] = useLocalState<WardrobeItem[]>(localKeys.wardrobe, []);
   const [open, setOpen] = useState(false);
 
-  const load = async () => {
-    if (!user) return;
-    const { data } = await supabase.from("wardrobe_items").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
-    setItems((data as Item[]) ?? []);
-  };
-  useEffect(() => { load(); }, [user]);
-
-  const remove = async (id: string) => {
-    await supabase.from("wardrobe_items").delete().eq("id", id);
-    setItems((s) => s.filter((i) => i.id !== id));
-  };
+  const remove = (id: string) => setItems((s) => s.filter((i) => i.id !== id));
 
   return (
     <div className="relative pb-4">
@@ -54,7 +40,6 @@ function Wardrobe() {
         </div>
       )}
 
-      {/* FAB */}
       <button onClick={() => setOpen(true)}
         className="fixed bottom-24 right-[calc(50vw-220px)] z-30 flex h-14 w-14 items-center justify-center rounded-full bg-foreground text-background shadow-soft active:scale-95 md:right-[calc(50vw-216px)]"
         style={{ bottom: "calc(env(safe-area-inset-bottom) + 5.5rem)" }}
@@ -62,13 +47,12 @@ function Wardrobe() {
         <Plus className="h-6 w-6" />
       </button>
 
-      {open && <AddItem onClose={() => setOpen(false)} onAdded={() => { setOpen(false); load(); }} />}
+      {open && <AddItem onClose={() => setOpen(false)} onAdd={(item) => { setItems((s) => [item, ...s]); setOpen(false); }} />}
     </div>
   );
 }
 
-function AddItem({ onClose, onAdded }: { onClose: () => void; onAdded: () => void }) {
-  const { user } = useAuth();
+function AddItem({ onClose, onAdd }: { onClose: () => void; onAdd: (item: WardrobeItem) => void }) {
   const [name, setName] = useState("");
   const [category, setCategory] = useState("tops");
   const [color, setColor] = useState("");
@@ -77,20 +61,18 @@ function AddItem({ onClose, onAdded }: { onClose: () => void; onAdded: () => voi
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
     setBusy(true);
     try {
       let image_url: string | null = null;
-      if (file) {
-        const path = `${user.id}/${Date.now()}-${file.name.replace(/[^a-z0-9.]/gi, "_")}`;
-        const { error: upErr } = await supabase.storage.from("wardrobe").upload(path, file);
-        if (upErr) throw upErr;
-        image_url = supabase.storage.from("wardrobe").getPublicUrl(path).data.publicUrl;
-      }
-      const { error } = await supabase.from("wardrobe_items").insert({ user_id: user.id, name, category, color: color || null, image_url });
-      if (error) throw error;
+      if (file) image_url = await fileToDataUrl(file);
+      onAdd({
+        id: crypto.randomUUID(),
+        name,
+        category,
+        color: color || null,
+        image_url,
+      });
       toast.success("Added to your closet");
-      onAdded();
     } catch (e) { toast.error(e instanceof Error ? e.message : "Upload failed"); }
     finally { setBusy(false); }
   };

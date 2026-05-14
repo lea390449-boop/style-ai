@@ -4,13 +4,10 @@ import { useServerFn } from "@tanstack/react-start";
 import { Send, Sparkles } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth-context";
 import { stylistChat } from "@/lib/ai.functions";
+import { useLocalState, localKeys, type WardrobeItem, type ChatMsg } from "@/lib/local-store";
 
 export const Route = createFileRoute("/app/")({ component: StylistChat });
-
-type Msg = { role: "user" | "assistant"; content: string };
 
 const STARTERS = [
   "What should I wear to dinner tonight?",
@@ -20,41 +17,31 @@ const STARTERS = [
 ];
 
 function StylistChat() {
-  const { user } = useAuth();
   const chat = useServerFn(stylistChat);
-  const [messages, setMessages] = useState<Msg[]>([]);
+  const [messages, setMessages] = useLocalState<ChatMsg[]>(localKeys.chat, []);
+  const [wardrobe] = useLocalState<WardrobeItem[]>(localKeys.wardrobe, []);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!user) return;
-    supabase.from("chat_messages").select("*").eq("user_id", user.id).order("created_at").limit(50)
-      .then(({ data }) => {
-        if (data) setMessages(data.map((m) => ({ role: m.role as "user" | "assistant", content: m.content })));
-      });
-  }, [user]);
-
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
   const send = async (text: string) => {
-    if (!text.trim() || busy || !user) return;
+    if (!text.trim() || busy) return;
     setBusy(true);
-    const userMsg: Msg = { role: "user", content: text };
-    setMessages((m) => [...m, userMsg]);
+    const userMsg: ChatMsg = { role: "user", content: text };
+    const next = [...messages, userMsg];
+    setMessages(next);
     setInput("");
 
-    // Wardrobe context
-    const { data: items } = await supabase.from("wardrobe_items").select("name,category,color").eq("user_id", user.id).limit(40);
-    const wardrobeContext = items?.length ? items.map((i) => `- ${i.color ?? ""} ${i.name} (${i.category})`).join("\n") : undefined;
-
-    await supabase.from("chat_messages").insert({ user_id: user.id, role: "user", content: text });
+    const wardrobeContext = wardrobe.length
+      ? wardrobe.map((i) => `- ${i.color ?? ""} ${i.name} (${i.category})`).join("\n")
+      : undefined;
 
     try {
-      const { reply, error } = await chat({ data: { messages: [...messages, userMsg], wardrobeContext } });
+      const { reply, error } = await chat({ data: { messages: next, wardrobeContext } });
       if (error) toast.error(reply);
-      setMessages((m) => [...m, { role: "assistant", content: reply }]);
-      await supabase.from("chat_messages").insert({ user_id: user.id, role: "assistant", content: reply });
+      setMessages([...next, { role: "assistant", content: reply }]);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed");
     } finally { setBusy(false); }

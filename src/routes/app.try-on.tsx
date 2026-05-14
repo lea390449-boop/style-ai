@@ -1,64 +1,47 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Sparkles, Upload, Check, Camera, RefreshCw, User } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth-context";
 import { generateLook, analyzeUserPhoto } from "@/lib/ai.functions";
+import { useLocalState, localKeys, fileToDataUrl, type WardrobeItem, type ProfileLocal, type LookLocal } from "@/lib/local-store";
 
 export const Route = createFileRoute("/app/try-on")({ component: TryOn });
 
-type Item = { id: string; name: string; image_url: string | null; category: string };
-type Profile = { photo_url: string | null; skin_tone: string | null; undertone: string | null };
-type LookHistory = { id: string; result_url: string };
-
 const OCCASIONS = ["Brunch", "Office", "Date night", "Travel", "Weekend", "Evening"];
 
+const EMPTY_PROFILE: ProfileLocal = { photo_url: null, skin_tone: null, undertone: null, body_notes: null };
+
 function TryOn() {
-  const { user } = useAuth();
   const generate = useServerFn(generateLook);
   const analyze = useServerFn(analyzeUserPhoto);
 
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [wardrobe, setWardrobe] = useState<Item[]>([]);
-  const [history, setHistory] = useState<LookHistory[]>([]);
+  const [profile, setProfile] = useLocalState<ProfileLocal>(localKeys.profile, EMPTY_PROFILE);
+  const [wardrobe] = useLocalState<WardrobeItem[]>(localKeys.wardrobe, []);
+  const [history, setHistory] = useLocalState<LookLocal[]>(localKeys.looks, []);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [occasion, setOccasion] = useState<string>("");
   const [busy, setBusy] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState<string | null>(null);
 
-  const refresh = async () => {
-    if (!user) return;
-    const [{ data: p }, { data: w }, { data: h }] = await Promise.all([
-      supabase.from("profiles").select("photo_url,skin_tone,undertone").eq("id", user.id).maybeSingle(),
-      supabase.from("wardrobe_items").select("id,name,image_url,category").eq("user_id", user.id).not("image_url", "is", null).order("created_at", { ascending: false }),
-      supabase.from("try_on_results").select("id,result_url").eq("user_id", user.id).order("created_at", { ascending: false }).limit(8),
-    ]);
-    setProfile((p as Profile) ?? { photo_url: null, skin_tone: null, undertone: null });
-    setWardrobe((w as Item[]) ?? []);
-    setHistory((h as LookHistory[]) ?? []);
-  };
-
-  useEffect(() => { refresh(); }, [user]);
-
   const uploadPhoto = async (file: File) => {
-    if (!user) return;
     setAnalyzing(true);
     try {
-      const ext = file.name.split(".").pop() || "jpg";
-      const path = `${user.id}/profile/${Date.now()}.${ext}`;
-      const { error } = await supabase.storage.from("wardrobe").upload(path, file, { upsert: true });
-      if (error) throw error;
-      const photoUrl = supabase.storage.from("wardrobe").getPublicUrl(path).data.publicUrl;
+      const photoUrl = await fileToDataUrl(file);
       const res = await analyze({ data: { photoUrl } });
       if (!res.ok) {
         toast.error(res.error);
+        setProfile({ ...EMPTY_PROFILE, photo_url: photoUrl });
       } else {
+        setProfile({
+          photo_url: photoUrl,
+          skin_tone: res.skin_tone,
+          undertone: res.undertone,
+          body_notes: `${res.hair}; ${res.build}`,
+        });
         toast.success(`You're set — ${res.skin_tone} ${res.undertone}.`);
       }
-      await refresh();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Upload failed");
     } finally {
@@ -74,24 +57,34 @@ function TryOn() {
     });
   };
 
+  const wardrobeWithImages = wardrobe.filter((w) => w.image_url);
+
   const run = async () => {
-    if (!profile?.photo_url) return toast.error("Add your reference photo first.");
+    if (!profile.photo_url) return toast.error("Add your reference photo first.");
     if (selected.size === 0) return toast.error("Pick at least one piece from your closet.");
-    const garmentUrls = wardrobe.filter((w) => selected.has(w.id)).map((w) => w.image_url!).slice(0, 6);
+    const garmentUrls = wardrobeWithImages.filter((w) => selected.has(w.id)).map((w) => w.image_url!).slice(0, 6);
     setBusy(true);
     setResult(null);
     try {
-      const { imageUrl, error } = await generate({ data: { garmentUrls, occasion: occasion || undefined } });
+      const { imageUrl, error } = await generate({
+        data: {
+          photoUrl: profile.photo_url,
+          skinTone: profile.skin_tone ?? undefined,
+          undertone: profile.undertone ?? undefined,
+          bodyNotes: profile.body_notes ?? undefined,
+          garmentUrls,
+          occasion: occasion || undefined,
+        },
+      });
       if (error || !imageUrl) return toast.error(error ?? "Failed");
       setResult(imageUrl);
-      refresh();
+      setHistory((h) => [{ id: crypto.randomUUID(), result_url: imageUrl }, ...h].slice(0, 8));
     } finally {
       setBusy(false);
     }
   };
 
-  // Profile photo gate
-  if (!profile?.photo_url) {
+  if (!profile.photo_url) {
     return (
       <div className="space-y-6">
         <div className="rounded-3xl bg-gradient-blush p-6 text-plum">
@@ -126,7 +119,6 @@ function TryOn() {
 
   return (
     <div className="space-y-6">
-      {/* Result canvas */}
       <div className="overflow-hidden rounded-3xl bg-gradient-mauve">
         <div className="relative aspect-[3/4] w-full bg-black/5">
           {busy ? (
@@ -144,11 +136,10 @@ function TryOn() {
             </div>
           )}
         </div>
-        {/* Profile chip */}
         <div className="flex items-center gap-3 bg-card/95 px-4 py-3">
           <img src={profile.photo_url} alt="" className="h-10 w-10 rounded-full object-cover" />
           <div className="flex-1 text-xs">
-            <p className="font-medium capitalize">{profile.skin_tone} · {profile.undertone}</p>
+            <p className="font-medium capitalize">{profile.skin_tone ?? "you"} · {profile.undertone ?? ""}</p>
             <p className="text-muted-foreground">Identity locked for accurate rendering</p>
           </div>
           <label className="cursor-pointer rounded-full border border-border px-3 py-1.5 text-[11px]">
@@ -158,7 +149,6 @@ function TryOn() {
         </div>
       </div>
 
-      {/* Occasion */}
       <div>
         <p className="mb-2 text-xs uppercase tracking-[0.2em] text-muted-foreground">Occasion</p>
         <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1">
@@ -171,19 +161,18 @@ function TryOn() {
         </div>
       </div>
 
-      {/* Closet picker */}
       <div>
         <div className="mb-2 flex items-center justify-between">
           <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Pick from your closet</p>
           {selected.size > 0 && <span className="text-xs text-mauve">{selected.size} selected</span>}
         </div>
-        {wardrobe.length === 0 ? (
+        {wardrobeWithImages.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border bg-card/60 p-6 text-center text-sm text-muted-foreground">
-            Add pieces to your closet first.
+            Add pieces (with photos) to your closet first.
           </div>
         ) : (
           <div className="grid grid-cols-3 gap-2">
-            {wardrobe.map((w) => {
+            {wardrobeWithImages.map((w) => {
               const on = selected.has(w.id);
               return (
                 <button key={w.id} onClick={() => toggle(w.id)}
@@ -203,7 +192,6 @@ function TryOn() {
         )}
       </div>
 
-      {/* History */}
       {history.length > 0 && (
         <div>
           <p className="mb-2 text-xs uppercase tracking-[0.2em] text-muted-foreground">Recent looks</p>
@@ -218,13 +206,11 @@ function TryOn() {
         </div>
       )}
 
-      {/* Sticky CTA */}
       <button onClick={run} disabled={busy || selected.size === 0}
         className="sticky bottom-2 flex w-full items-center justify-center gap-2 rounded-full bg-foreground py-4 text-sm font-medium text-background shadow-soft disabled:opacity-40">
         <Sparkles className="h-4 w-4" /> {busy ? "Styling you…" : "Generate look"}
       </button>
 
-      {/* spacer for label discoverability */}
       <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
         <Upload className="h-3 w-3" /> Renders preserve your face, hair, and skin tone.
       </div>

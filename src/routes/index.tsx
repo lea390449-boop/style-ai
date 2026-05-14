@@ -1,19 +1,10 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Sparkles } from "lucide-react";
-import { useEffect } from "react";
-import { useAuth } from "@/lib/auth-context";
 import hero from "@/assets/hero.jpg";
 
 export const Route = createFileRoute("/")({ component: Splash });
 
 function Splash() {
-  const { user, loading } = useAuth();
-  const nav = useNavigate();
-
-  useEffect(() => {
-    if (!loading && user) nav({ to: "/app" });
-  }, [loading, user, nav]);
-
   return (
     <div className="min-h-dvh bg-gradient-blush md:bg-gradient-to-br md:from-petal/40 md:via-blush md:to-cream">
       <div className="mx-auto flex min-h-dvh max-w-[480px] flex-col bg-background shadow-soft md:my-6 md:min-h-[calc(100dvh-3rem)] md:rounded-[2.5rem] md:overflow-hidden md:border md:border-border">
@@ -37,12 +28,10 @@ function Splash() {
           className="space-y-3 px-7 pt-5"
           style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 1.75rem)" }}
         >
-          <Link to="/auth" className="block rounded-full bg-foreground py-4 text-center text-sm font-medium text-background shadow-soft">
-            Create your account
+          <Link to="/app" className="block rounded-full bg-foreground py-4 text-center text-sm font-medium text-background shadow-soft">
+            Open Alta
           </Link>
-          <Link to="/auth" className="block rounded-full border border-border py-4 text-center text-sm font-medium">
-            I already have an account
-          </Link>
+          <p className="text-center text-[11px] text-muted-foreground">No account, no fees. Your closet stays on your device.</p>
         </div>
       </div>
     </div>
