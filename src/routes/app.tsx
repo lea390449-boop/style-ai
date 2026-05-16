@@ -1,5 +1,5 @@
 import { createFileRoute, Outlet, Link, useLocation } from "@tanstack/react-router";
-import { Sparkles, Shirt, Camera, ShoppingBag } from "lucide-react";
+import { Sparkles, Shirt, Camera, Bookmark } from "lucide-react";
 
 export const Route = createFileRoute("/app")({ component: AppShell });
 
@@ -7,14 +7,14 @@ const TITLES: Record<string, string> = {
   "/app": "Stylist",
   "/app/wardrobe": "Closet",
   "/app/try-on": "Try-on",
-  "/app/shop": "Shop",
+  "/app/boards": "Boards",
 };
 
-const tabs: ReadonlyArray<{ to: "/app" | "/app/wardrobe" | "/app/try-on" | "/app/shop"; label: string; icon: typeof Sparkles; exact?: boolean }> = [
+const tabs: ReadonlyArray<{ to: "/app" | "/app/wardrobe" | "/app/try-on" | "/app/boards"; label: string; icon: typeof Sparkles; exact?: boolean }> = [
   { to: "/app", label: "Stylist", icon: Sparkles, exact: true },
   { to: "/app/wardrobe", label: "Closet", icon: Shirt },
   { to: "/app/try-on", label: "Try-on", icon: Camera },
-  { to: "/app/shop", label: "Shop", icon: ShoppingBag },
+  { to: "/app/boards", label: "Boards", icon: Bookmark },
 ];
 
 function AppShell() {
