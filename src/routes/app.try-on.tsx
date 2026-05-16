@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Sparkles, Upload, Check, Camera, RefreshCw, User } from "lucide-react";
+import { Sparkles, Upload, Check, Camera, RefreshCw, User, PlayCircle, X } from "lucide-react";
 import { toast } from "sonner";
 import { generateLook, analyzeUserPhoto } from "@/lib/ai.functions";
 import { useLocalState, localKeys, fileToDataUrl, type WardrobeItem, type ProfileLocal, type LookLocal } from "@/lib/local-store";
