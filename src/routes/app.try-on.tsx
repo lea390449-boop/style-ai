@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Sparkles, Upload, Check, Camera, RefreshCw, User } from "lucide-react";
+import { Sparkles, Upload, Check, Camera, RefreshCw, User, PlayCircle, X } from "lucide-react";
 import { toast } from "sonner";
 import { generateLook, analyzeUserPhoto } from "@/lib/ai.functions";
 import { useLocalState, localKeys, fileToDataUrl, type WardrobeItem, type ProfileLocal, type LookLocal } from "@/lib/local-store";
@@ -24,6 +24,7 @@ function TryOn() {
   const [busy, setBusy] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState<string | null>(null);
+  const [adOpen, setAdOpen] = useState(false);
 
   const uploadPhoto = async (file: File) => {
     setAnalyzing(true);
@@ -59,9 +60,21 @@ function TryOn() {
 
   const wardrobeWithImages = wardrobe.filter((w) => w.image_url);
 
-  const run = async () => {
+  const composedBodyNotes = [
+    profile.body_shape ? `body shape: ${profile.body_shape}` : null,
+    profile.height_cm ? `height ${profile.height_cm}cm` : null,
+    profile.weight_kg ? `weight ${profile.weight_kg}kg` : null,
+    profile.body_notes,
+  ].filter(Boolean).join("; ") || undefined;
+
+  const tryGenerate = () => {
     if (!profile.photo_url) return toast.error("Add your reference photo first.");
     if (selected.size === 0) return toast.error("Pick at least one piece from your closet.");
+    setAdOpen(true);
+  };
+
+  const run = async () => {
+    if (!profile.photo_url) return;
     const garmentUrls = wardrobeWithImages.filter((w) => selected.has(w.id)).map((w) => w.image_url!).slice(0, 6);
     setBusy(true);
     setResult(null);
@@ -71,7 +84,7 @@ function TryOn() {
           photoUrl: profile.photo_url,
           skinTone: profile.skin_tone ?? undefined,
           undertone: profile.undertone ?? undefined,
-          bodyNotes: profile.body_notes ?? undefined,
+          bodyNotes: composedBodyNotes,
           garmentUrls,
           occasion: occasion || undefined,
         },
@@ -206,13 +219,58 @@ function TryOn() {
         </div>
       )}
 
-      <button onClick={run} disabled={busy || selected.size === 0}
+      <button onClick={tryGenerate} disabled={busy || selected.size === 0}
         className="sticky bottom-2 flex w-full items-center justify-center gap-2 rounded-full bg-foreground py-4 text-sm font-medium text-background shadow-soft disabled:opacity-40">
-        <Sparkles className="h-4 w-4" /> {busy ? "Styling you…" : "Generate look"}
+        {busy ? <><RefreshCw className="h-4 w-4 animate-spin" /> Styling you…</> : <><PlayCircle className="h-4 w-4" /> Watch ad & generate look</>}
       </button>
 
       <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
         <Upload className="h-3 w-3" /> Renders preserve your face, hair, and skin tone.
+      </div>
+
+      {adOpen && <AdGate onClose={() => setAdOpen(false)} onDone={() => { setAdOpen(false); run(); }} />}
+    </div>
+  );
+}
+
+function AdGate({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
+  const TOTAL = 5;
+  const [left, setLeft] = useState(TOTAL);
+  useEffect(() => {
+    if (left <= 0) return;
+    const t = setTimeout(() => setLeft((n) => n - 1), 1000);
+    return () => clearTimeout(t);
+  }, [left]);
+  const done = left <= 0;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/80 px-4">
+      <div className="relative w-full max-w-sm overflow-hidden rounded-3xl bg-gradient-mauve text-primary-foreground shadow-soft">
+        <button onClick={onClose} className="absolute right-3 top-3 z-10 rounded-full bg-background/15 p-1.5 backdrop-blur">
+          <X className="h-3.5 w-3.5" />
+        </button>
+        <div className="aspect-square flex flex-col items-center justify-center gap-4 p-8 text-center">
+          <p className="text-[10px] uppercase tracking-[0.3em] opacity-70">Sponsored</p>
+          <Sparkles className="h-12 w-12 opacity-90" />
+          <p className="font-display text-2xl leading-tight">Style anywhere, anytime.</p>
+          <p className="text-xs opacity-80">Alta keeps everything on your device — no account, no fees.</p>
+        </div>
+        <div className="bg-background/95 px-5 py-4 text-foreground">
+          {done ? (
+            <button onClick={onDone} className="flex w-full items-center justify-center gap-2 rounded-full bg-foreground py-3 text-sm font-medium text-background">
+              <Sparkles className="h-4 w-4" /> Generate my look
+            </button>
+          ) : (
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex-1">
+                <div className="h-1 overflow-hidden rounded-full bg-secondary">
+                  <div className="h-full bg-foreground transition-all" style={{ width: `${((TOTAL - left) / TOTAL) * 100}%` }} />
+                </div>
+                <p className="mt-2 text-[11px] text-muted-foreground">Your look unlocks in {left}s…</p>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

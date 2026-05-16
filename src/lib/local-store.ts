@@ -13,6 +13,10 @@ export type ProfileLocal = {
   skin_tone: string | null;
   undertone: string | null;
   body_notes: string | null;
+  height_cm?: number | null;
+  weight_kg?: number | null;
+  body_shape?: string | null;
+  onboarded?: boolean;
 };
 
 export type LookLocal = { id: string; result_url: string; note?: string; createdAt?: number };
