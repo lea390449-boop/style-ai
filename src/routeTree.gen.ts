@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppWardrobeRouteImport } from './routes/app.wardrobe'
 import { Route as AppTryOnRouteImport } from './routes/app.try-on'
+import { Route as AppBoardsRouteImport } from './routes/app.boards'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -46,11 +47,17 @@ const AppTryOnRoute = AppTryOnRouteImport.update({
   path: '/try-on',
   getParentRoute: () => AppRoute,
 } as any)
+const AppBoardsRoute = AppBoardsRouteImport.update({
+  id: '/boards',
+  path: '/boards',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
+  '/app/boards': typeof AppBoardsRoute
   '/app/try-on': typeof AppTryOnRoute
   '/app/wardrobe': typeof AppWardrobeRoute
   '/app/': typeof AppIndexRoute
@@ -58,6 +65,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/app/boards': typeof AppBoardsRoute
   '/app/try-on': typeof AppTryOnRoute
   '/app/wardrobe': typeof AppWardrobeRoute
   '/app': typeof AppIndexRoute
@@ -67,20 +75,29 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
+  '/app/boards': typeof AppBoardsRoute
   '/app/try-on': typeof AppTryOnRoute
   '/app/wardrobe': typeof AppWardrobeRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/app' | '/auth' | '/app/try-on' | '/app/wardrobe' | '/app/'
+  fullPaths:
+    | '/'
+    | '/app'
+    | '/auth'
+    | '/app/boards'
+    | '/app/try-on'
+    | '/app/wardrobe'
+    | '/app/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/app/try-on' | '/app/wardrobe' | '/app'
+  to: '/' | '/auth' | '/app/boards' | '/app/try-on' | '/app/wardrobe' | '/app'
   id:
     | '__root__'
     | '/'
     | '/app'
     | '/auth'
+    | '/app/boards'
     | '/app/try-on'
     | '/app/wardrobe'
     | '/app/'
@@ -136,16 +153,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppTryOnRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/boards': {
+      id: '/app/boards'
+      path: '/boards'
+      fullPath: '/app/boards'
+      preLoaderRoute: typeof AppBoardsRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
+  AppBoardsRoute: typeof AppBoardsRoute
   AppTryOnRoute: typeof AppTryOnRoute
   AppWardrobeRoute: typeof AppWardrobeRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppBoardsRoute: AppBoardsRoute,
   AppTryOnRoute: AppTryOnRoute,
   AppWardrobeRoute: AppWardrobeRoute,
   AppIndexRoute: AppIndexRoute,
