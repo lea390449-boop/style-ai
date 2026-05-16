@@ -24,6 +24,7 @@ function TryOn() {
   const [busy, setBusy] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState<string | null>(null);
+  const [adOpen, setAdOpen] = useState(false);
 
   const uploadPhoto = async (file: File) => {
     setAnalyzing(true);
