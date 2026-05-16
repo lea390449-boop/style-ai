@@ -60,9 +60,21 @@ function TryOn() {
 
   const wardrobeWithImages = wardrobe.filter((w) => w.image_url);
 
-  const run = async () => {
+  const composedBodyNotes = [
+    profile.body_shape ? `body shape: ${profile.body_shape}` : null,
+    profile.height_cm ? `height ${profile.height_cm}cm` : null,
+    profile.weight_kg ? `weight ${profile.weight_kg}kg` : null,
+    profile.body_notes,
+  ].filter(Boolean).join("; ") || undefined;
+
+  const tryGenerate = () => {
     if (!profile.photo_url) return toast.error("Add your reference photo first.");
     if (selected.size === 0) return toast.error("Pick at least one piece from your closet.");
+    setAdOpen(true);
+  };
+
+  const run = async () => {
+    if (!profile.photo_url) return;
     const garmentUrls = wardrobeWithImages.filter((w) => selected.has(w.id)).map((w) => w.image_url!).slice(0, 6);
     setBusy(true);
     setResult(null);
@@ -72,7 +84,7 @@ function TryOn() {
           photoUrl: profile.photo_url,
           skinTone: profile.skin_tone ?? undefined,
           undertone: profile.undertone ?? undefined,
-          bodyNotes: profile.body_notes ?? undefined,
+          bodyNotes: composedBodyNotes,
           garmentUrls,
           occasion: occasion || undefined,
         },
