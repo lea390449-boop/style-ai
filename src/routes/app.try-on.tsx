@@ -219,13 +219,58 @@ function TryOn() {
         </div>
       )}
 
-      <button onClick={run} disabled={busy || selected.size === 0}
+      <button onClick={tryGenerate} disabled={busy || selected.size === 0}
         className="sticky bottom-2 flex w-full items-center justify-center gap-2 rounded-full bg-foreground py-4 text-sm font-medium text-background shadow-soft disabled:opacity-40">
-        <Sparkles className="h-4 w-4" /> {busy ? "Styling you…" : "Generate look"}
+        {busy ? <><RefreshCw className="h-4 w-4 animate-spin" /> Styling you…</> : <><PlayCircle className="h-4 w-4" /> Watch ad & generate look</>}
       </button>
 
       <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
         <Upload className="h-3 w-3" /> Renders preserve your face, hair, and skin tone.
+      </div>
+
+      {adOpen && <AdGate onClose={() => setAdOpen(false)} onDone={() => { setAdOpen(false); run(); }} />}
+    </div>
+  );
+}
+
+function AdGate({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
+  const TOTAL = 5;
+  const [left, setLeft] = useState(TOTAL);
+  useEffect(() => {
+    if (left <= 0) return;
+    const t = setTimeout(() => setLeft((n) => n - 1), 1000);
+    return () => clearTimeout(t);
+  }, [left]);
+  const done = left <= 0;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/80 px-4">
+      <div className="relative w-full max-w-sm overflow-hidden rounded-3xl bg-gradient-mauve text-primary-foreground shadow-soft">
+        <button onClick={onClose} className="absolute right-3 top-3 z-10 rounded-full bg-background/15 p-1.5 backdrop-blur">
+          <X className="h-3.5 w-3.5" />
+        </button>
+        <div className="aspect-square flex flex-col items-center justify-center gap-4 p-8 text-center">
+          <p className="text-[10px] uppercase tracking-[0.3em] opacity-70">Sponsored</p>
+          <Sparkles className="h-12 w-12 opacity-90" />
+          <p className="font-display text-2xl leading-tight">Style anywhere, anytime.</p>
+          <p className="text-xs opacity-80">Alta keeps everything on your device — no account, no fees.</p>
+        </div>
+        <div className="bg-background/95 px-5 py-4 text-foreground">
+          {done ? (
+            <button onClick={onDone} className="flex w-full items-center justify-center gap-2 rounded-full bg-foreground py-3 text-sm font-medium text-background">
+              <Sparkles className="h-4 w-4" /> Generate my look
+            </button>
+          ) : (
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex-1">
+                <div className="h-1 overflow-hidden rounded-full bg-secondary">
+                  <div className="h-full bg-foreground transition-all" style={{ width: `${((TOTAL - left) / TOTAL) * 100}%` }} />
+                </div>
+                <p className="mt-2 text-[11px] text-muted-foreground">Your look unlocks in {left}s…</p>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
