@@ -8,6 +8,7 @@ const TITLES: Record<string, string> = {
   "/app/wardrobe": "Closet",
   "/app/try-on": "Try-on",
   "/app/boards": "Boards",
+  "/app/welcome": "Welcome",
 };
 
 const tabs: ReadonlyArray<{ to: "/app" | "/app/wardrobe" | "/app/try-on" | "/app/boards"; label: string; icon: typeof Sparkles; exact?: boolean }> = [
