@@ -5,6 +5,9 @@ export type WardrobeItem = {
   name: string;
   category: string;
   color: string | null;
+  brand?: string | null;
+  price?: number | null;
+  currency?: string | null;
   image_url: string | null; // data URL
 };
 
