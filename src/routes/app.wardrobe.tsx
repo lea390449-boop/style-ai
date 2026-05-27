@@ -20,11 +20,14 @@ function guessCategory(name: string): string {
   return "tops";
 }
 
-type Draft = { id: string; file: File; preview: string; name: string; category: string; color: string };
+type Draft = { id: string; file: File; preview: string; name: string; category: string; color: string; brand: string; price: string; currency: string };
+
+const CURRENCIES = ["USD", "EUR", "GBP", "CAD", "AUD", "JPY"];
 
 function Wardrobe() {
   const [items, setItems] = useLocalState<WardrobeItem[]>(localKeys.wardrobe, []);
   const [drafts, setDrafts] = useState<Draft[]>([]);
+  const [defaultCurrency, setDefaultCurrency] = useState("USD");
 
   const remove = (id: string) => setItems((s) => s.filter((i) => i.id !== id));
 
@@ -41,6 +44,9 @@ function Wardrobe() {
         name: baseName || "New piece",
         category: guessCategory(baseName),
         color: "",
+        brand: "",
+        price: "",
+        currency: defaultCurrency,
       });
     }
     setDrafts((d) => [...d, ...arr]);
@@ -53,16 +59,28 @@ function Wardrobe() {
 
   const saveAll = () => {
     if (!drafts.length) return;
-    const newItems: WardrobeItem[] = drafts.map((d) => ({
-      id: crypto.randomUUID(),
-      name: d.name.trim() || "Untitled",
-      category: d.category,
-      color: d.color.trim() || null,
-      image_url: d.preview,
-    }));
+    const newItems: WardrobeItem[] = drafts.map((d) => {
+      const priceNum = d.price.trim() ? Number(d.price) : null;
+      return {
+        id: crypto.randomUUID(),
+        name: d.name.trim() || "Untitled",
+        category: d.category,
+        color: d.color.trim() || null,
+        brand: d.brand.trim() || null,
+        price: priceNum != null && !Number.isNaN(priceNum) ? priceNum : null,
+        currency: priceNum != null && !Number.isNaN(priceNum) ? d.currency : null,
+        image_url: d.preview,
+      };
+    });
     setItems((s) => [...newItems, ...s]);
     toast.success(`Added ${newItems.length} ${newItems.length === 1 ? "piece" : "pieces"}.`);
     setDrafts([]);
+  };
+
+  const fmtPrice = (i: WardrobeItem) => {
+    if (i.price == null) return null;
+    try { return new Intl.NumberFormat(undefined, { style: "currency", currency: i.currency || "USD" }).format(i.price); }
+    catch { return `${i.price} ${i.currency ?? ""}`.trim(); }
   };
 
   return (
