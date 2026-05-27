@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Plus, Trash2, Upload, X } from "lucide-react";
+import { Plus, Trash2, Upload, X, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { useLocalState, localKeys, fileToDataUrl, type WardrobeItem } from "@/lib/local-store";
 
@@ -20,7 +20,7 @@ function guessCategory(name: string): string {
   return "tops";
 }
 
-type Draft = { id: string; file: File; preview: string; name: string; category: string; color: string; brand: string; price: string; currency: string };
+type Draft = { id: string; file: File; preview: string; name: string; category: string; color: string; brand: string; price: string; currency: string; link: string };
 
 const CURRENCIES = ["USD", "EUR", "GBP", "CAD", "AUD", "JPY"];
 
@@ -47,6 +47,7 @@ function Wardrobe() {
         brand: "",
         price: "",
         currency: defaultCurrency,
+        link: "",
       });
     }
     setDrafts((d) => [...d, ...arr]);
@@ -69,6 +70,7 @@ function Wardrobe() {
         brand: d.brand.trim() || null,
         price: priceNum != null && !Number.isNaN(priceNum) ? priceNum : null,
         currency: priceNum != null && !Number.isNaN(priceNum) ? d.currency : null,
+        link: d.link.trim() || null,
         image_url: d.preview,
       };
     });
@@ -102,6 +104,11 @@ function Wardrobe() {
                 {i.brand && <p className="truncate text-[11px] font-medium text-foreground/70">{i.brand}</p>}
                 <p className="text-[11px] text-muted-foreground capitalize">{i.color ? `${i.color} · ` : ""}{i.category}</p>
                 {i.price != null && <p className="mt-0.5 text-[11px] font-medium text-mauve">{fmtPrice(i)}</p>}
+                {i.link && (
+                  <a href={i.link} target="_blank" rel="noreferrer" className="mt-1 inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:underline">
+                    <ExternalLink className="h-3 w-3" /> Link
+                  </a>
+                )}
               </div>
               <button onClick={() => remove(i.id)} className="absolute top-2 right-2 rounded-full bg-background/90 p-2 opacity-0 transition group-hover:opacity-100 active:opacity-100">
                 <Trash2 className="h-3.5 w-3.5" />
@@ -157,6 +164,8 @@ function Wardrobe() {
                         {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
                       </select>
                     </div>
+                    <input value={d.link} onChange={(e) => updateDraft(d.id, { link: e.target.value })}
+                      className="w-full rounded-lg border border-input bg-background px-2.5 py-1.5 text-xs" placeholder="Link (e.g. https://shop.com/item)" />
                   </div>
                   <button onClick={() => removeDraft(d.id)} className="self-start rounded-full p-1.5 text-muted-foreground hover:bg-secondary">
                     <X className="h-3.5 w-3.5" />
