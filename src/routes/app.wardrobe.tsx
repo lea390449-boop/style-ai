@@ -20,11 +20,14 @@ function guessCategory(name: string): string {
   return "tops";
 }
 
-type Draft = { id: string; file: File; preview: string; name: string; category: string; color: string };
+type Draft = { id: string; file: File; preview: string; name: string; category: string; color: string; brand: string; price: string; currency: string };
+
+const CURRENCIES = ["USD", "EUR", "GBP", "CAD", "AUD", "JPY"];
 
 function Wardrobe() {
   const [items, setItems] = useLocalState<WardrobeItem[]>(localKeys.wardrobe, []);
   const [drafts, setDrafts] = useState<Draft[]>([]);
+  const [defaultCurrency, setDefaultCurrency] = useState("USD");
 
   const remove = (id: string) => setItems((s) => s.filter((i) => i.id !== id));
 
@@ -41,6 +44,9 @@ function Wardrobe() {
         name: baseName || "New piece",
         category: guessCategory(baseName),
         color: "",
+        brand: "",
+        price: "",
+        currency: defaultCurrency,
       });
     }
     setDrafts((d) => [...d, ...arr]);
@@ -53,16 +59,28 @@ function Wardrobe() {
 
   const saveAll = () => {
     if (!drafts.length) return;
-    const newItems: WardrobeItem[] = drafts.map((d) => ({
-      id: crypto.randomUUID(),
-      name: d.name.trim() || "Untitled",
-      category: d.category,
-      color: d.color.trim() || null,
-      image_url: d.preview,
-    }));
+    const newItems: WardrobeItem[] = drafts.map((d) => {
+      const priceNum = d.price.trim() ? Number(d.price) : null;
+      return {
+        id: crypto.randomUUID(),
+        name: d.name.trim() || "Untitled",
+        category: d.category,
+        color: d.color.trim() || null,
+        brand: d.brand.trim() || null,
+        price: priceNum != null && !Number.isNaN(priceNum) ? priceNum : null,
+        currency: priceNum != null && !Number.isNaN(priceNum) ? d.currency : null,
+        image_url: d.preview,
+      };
+    });
     setItems((s) => [...newItems, ...s]);
     toast.success(`Added ${newItems.length} ${newItems.length === 1 ? "piece" : "pieces"}.`);
     setDrafts([]);
+  };
+
+  const fmtPrice = (i: WardrobeItem) => {
+    if (i.price == null) return null;
+    try { return new Intl.NumberFormat(undefined, { style: "currency", currency: i.currency || "USD" }).format(i.price); }
+    catch { return `${i.price} ${i.currency ?? ""}`.trim(); }
   };
 
   return (
@@ -81,7 +99,9 @@ function Wardrobe() {
               </div>
               <div className="p-2.5">
                 <p className="truncate text-sm font-medium">{i.name}</p>
+                {i.brand && <p className="truncate text-[11px] font-medium text-foreground/70">{i.brand}</p>}
                 <p className="text-[11px] text-muted-foreground capitalize">{i.color ? `${i.color} · ` : ""}{i.category}</p>
+                {i.price != null && <p className="mt-0.5 text-[11px] font-medium text-mauve">{fmtPrice(i)}</p>}
               </div>
               <button onClick={() => remove(i.id)} className="absolute top-2 right-2 rounded-full bg-background/90 p-2 opacity-0 transition group-hover:opacity-100 active:opacity-100">
                 <Trash2 className="h-3.5 w-3.5" />
@@ -124,6 +144,18 @@ function Wardrobe() {
                       </select>
                       <input value={d.color} onChange={(e) => updateDraft(d.id, { color: e.target.value })}
                         className="flex-1 rounded-lg border border-input bg-background px-2.5 py-1.5 text-xs" placeholder="Color" />
+                    </div>
+                    <input value={d.brand} onChange={(e) => updateDraft(d.id, { brand: e.target.value })}
+                      className="w-full rounded-lg border border-input bg-background px-2.5 py-1.5 text-xs" placeholder="Brand (e.g. Aritzia)" />
+                    <div className="flex gap-1.5">
+                      <input type="number" inputMode="decimal" min="0" step="0.01" value={d.price}
+                        onChange={(e) => updateDraft(d.id, { price: e.target.value })}
+                        className="flex-1 rounded-lg border border-input bg-background px-2.5 py-1.5 text-xs" placeholder="Price" />
+                      <select value={d.currency}
+                        onChange={(e) => { updateDraft(d.id, { currency: e.target.value }); setDefaultCurrency(e.target.value); }}
+                        className="w-20 rounded-lg border border-input bg-background px-2 py-1.5 text-xs">
+                        {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                      </select>
                     </div>
                   </div>
                   <button onClick={() => removeDraft(d.id)} className="self-start rounded-full p-1.5 text-muted-foreground hover:bg-secondary">
