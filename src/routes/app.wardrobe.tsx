@@ -99,7 +99,9 @@ function Wardrobe() {
               </div>
               <div className="p-2.5">
                 <p className="truncate text-sm font-medium">{i.name}</p>
+                {i.brand && <p className="truncate text-[11px] font-medium text-foreground/70">{i.brand}</p>}
                 <p className="text-[11px] text-muted-foreground capitalize">{i.color ? `${i.color} · ` : ""}{i.category}</p>
+                {i.price != null && <p className="mt-0.5 text-[11px] font-medium text-mauve">{fmtPrice(i)}</p>}
               </div>
               <button onClick={() => remove(i.id)} className="absolute top-2 right-2 rounded-full bg-background/90 p-2 opacity-0 transition group-hover:opacity-100 active:opacity-100">
                 <Trash2 className="h-3.5 w-3.5" />
