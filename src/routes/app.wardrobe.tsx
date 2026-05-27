@@ -20,7 +20,7 @@ function guessCategory(name: string): string {
   return "tops";
 }
 
-type Draft = { id: string; file: File; preview: string; name: string; category: string; color: string; brand: string; price: string; currency: string };
+type Draft = { id: string; file: File; preview: string; name: string; category: string; color: string; brand: string; price: string; currency: string; link: string };
 
 const CURRENCIES = ["USD", "EUR", "GBP", "CAD", "AUD", "JPY"];
 
