@@ -70,6 +70,7 @@ function Wardrobe() {
         brand: d.brand.trim() || null,
         price: priceNum != null && !Number.isNaN(priceNum) ? priceNum : null,
         currency: priceNum != null && !Number.isNaN(priceNum) ? d.currency : null,
+        link: d.link.trim() || null,
         image_url: d.preview,
       };
     });
