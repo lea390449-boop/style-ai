@@ -100,10 +100,14 @@ function Welcome() {
             </div>
           )}
 
-          <button onClick={() => setStep(1)} disabled={!profile.photo_url}
-            className="flex w-full items-center justify-center gap-2 rounded-full bg-foreground py-4 text-sm font-medium text-background disabled:opacity-40">
-            Next <ChevronRight className="h-4 w-4" />
-          </button>
+          <div className="flex gap-2">
+            <button onClick={() => finish()}
+              className="flex-1 rounded-full border border-border py-4 text-sm">Skip for now</button>
+            <button onClick={() => setStep(1)} disabled={!profile.photo_url}
+              className="flex flex-1 items-center justify-center gap-2 rounded-full bg-foreground py-4 text-sm font-medium text-background disabled:opacity-40">
+              Next <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       )}
 
