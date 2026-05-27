@@ -8,6 +8,7 @@ export type WardrobeItem = {
   brand?: string | null;
   price?: number | null;
   currency?: string | null;
+  link?: string | null;
   image_url: string | null; // data URL
 };
 
