@@ -47,6 +47,7 @@ function Wardrobe() {
         brand: "",
         price: "",
         currency: defaultCurrency,
+        link: "",
       });
     }
     setDrafts((d) => [...d, ...arr]);
