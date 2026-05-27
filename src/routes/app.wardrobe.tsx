@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Plus, Trash2, Upload, X } from "lucide-react";
+import { Plus, Trash2, Upload, X, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { useLocalState, localKeys, fileToDataUrl, type WardrobeItem } from "@/lib/local-store";
 
