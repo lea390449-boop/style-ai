@@ -34,7 +34,7 @@ function Splash() {
           <button onClick={start} className="block w-full rounded-full bg-foreground py-4 text-center text-sm font-medium text-background shadow-soft">
             Get started
           </button>
-          <p className="text-center text-[11px] text-muted-foreground">No account. No fees. Stays on your device.</p>
+          <p className="text-center text-[11px] text-muted-foreground">No login needed. Your closet & outfits stay on your device.</p>
         </div>
       </div>
     </div>
