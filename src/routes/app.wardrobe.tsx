@@ -164,6 +164,8 @@ function Wardrobe() {
                         {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
                       </select>
                     </div>
+                    <input value={d.link} onChange={(e) => updateDraft(d.id, { link: e.target.value })}
+                      className="w-full rounded-lg border border-input bg-background px-2.5 py-1.5 text-xs" placeholder="Link (e.g. https://shop.com/item)" />
                   </div>
                   <button onClick={() => removeDraft(d.id)} className="self-start rounded-full p-1.5 text-muted-foreground hover:bg-secondary">
                     <X className="h-3.5 w-3.5" />
