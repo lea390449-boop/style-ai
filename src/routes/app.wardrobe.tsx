@@ -145,6 +145,18 @@ function Wardrobe() {
                       <input value={d.color} onChange={(e) => updateDraft(d.id, { color: e.target.value })}
                         className="flex-1 rounded-lg border border-input bg-background px-2.5 py-1.5 text-xs" placeholder="Color" />
                     </div>
+                    <input value={d.brand} onChange={(e) => updateDraft(d.id, { brand: e.target.value })}
+                      className="w-full rounded-lg border border-input bg-background px-2.5 py-1.5 text-xs" placeholder="Brand (e.g. Aritzia)" />
+                    <div className="flex gap-1.5">
+                      <input type="number" inputMode="decimal" min="0" step="0.01" value={d.price}
+                        onChange={(e) => updateDraft(d.id, { price: e.target.value })}
+                        className="flex-1 rounded-lg border border-input bg-background px-2.5 py-1.5 text-xs" placeholder="Price" />
+                      <select value={d.currency}
+                        onChange={(e) => { updateDraft(d.id, { currency: e.target.value }); setDefaultCurrency(e.target.value); }}
+                        className="w-20 rounded-lg border border-input bg-background px-2 py-1.5 text-xs">
+                        {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                    </div>
                   </div>
                   <button onClick={() => removeDraft(d.id)} className="self-start rounded-full p-1.5 text-muted-foreground hover:bg-secondary">
                     <X className="h-3.5 w-3.5" />
